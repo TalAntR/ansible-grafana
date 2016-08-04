@@ -1,0 +1,15 @@
+---
+
+grafana:
+  # Define settings for APT repository
+  providers:
+    # Configuration settings and packages for Debian-based Linux
+    pkg:
+      delim: "="
+      repositories:
+        Grafana:
+          url: "https://packagecloud.io/grafana/stable/debian {{ ansible_lsb.codename }} main"
+          keys: [ "https://packagecloud.io/gpg.key" ]
+      packages:
+        - grafana
+

@@ -1,0 +1,96 @@
+---
+
+grafana_version: "{{ version | default('3.1.0') }}"
+
+grafana:
+  service:
+    # Name of the managed service
+    name: "grafana"
+
+    # Version of the collectd daemon
+    version: "{{ grafana_version }}"
+
+    # Base/working directory for grafana daemon
+    home: "{{ grafana_home | default('/usr/share/grafana') }}"
+
+    # Location for configuration files
+    conf: "/etc/grafana"
+
+    # Name of SysV script or Systemd unit
+    daemon: "grafana-server"
+
+    # Processes and files owner
+    owner: "grafana"
+
+    # Options from grafana.ini
+    options:
+      # Path for temp files: sessions, and the sqlite3 db (if that is used)
+      paths:
+        data: "/var/lib/grafana"
+        logs: "/var/log/grafana"
+
+      # Server configuration
+      server:
+        protocol: "http"
+        http_port: "3000"
+
+      # Either "mysql", "postgres" or "sqlite3", it's your choice
+      database:
+        type: "sqlite3"
+        path: "grafana.db"
+
+      # Either "memory", "file", "redis", "mysql", "postgres", default is "file"
+      session: {}
+
+      # Server reporting, sends usage counters to stats.grafana.org every 24 hours. Icludes Google analytics
+      analytics: {}
+
+      # Secutiry settings: default admin user account and its parameters
+      security: {}
+
+      # User management options
+      users:
+        allow_sign_up: false
+
+      # Global settings for various types of authentication. Default auth type - Basic
+      auth:
+        anonymous:
+          enabled: false
+        github:
+          enabled: false
+        google:
+          enabled: false
+        proxy:
+          enabled: false
+        basic:
+          enabled: true
+        ldap:
+          enabled: false
+          config_file: "/etc/grafana/ldap.toml"
+
+      # SMTP / Emailing
+      smtp: {}
+
+      # Logging parameters
+      log:
+        level: "info"
+        console: {}
+        file: {}
+
+      # AMPQ Event Publisher
+      event_publisher: {}
+
+      # Dashboard JSON files
+      dashboards: {}
+
+  # Configuration settings for you LDAP server
+  ldap: {}
+
+  # A set of dashboards which should be created
+  dashboards: {}
+
+  # A list of organizations which will be created
+  organizations: {}
+
+  # A list of data sources which will be created
+  sources: {}

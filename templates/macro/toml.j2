@@ -1,0 +1,59 @@
+{# Jinja2 macro to get a TOML configuration from python hashes #}
+
+{%- macro to_toml(item, prefix, indent='  ', level=0) %}
+
+{%- if item is mapping %}
+  {# Select hashes/dicts #}
+  {% set hashes = dict(item.items() | selectattr('1', 'mapping')) %}
+
+  {%- for key, value in item.items() | sort  %}
+    {%- if value is string or
+           value in [true, false] or
+           value is number -%}
+      {{- indent * level }}{{ key }}={{ to_toml(item[key], prefix) }}
+    {% elif key not in hashes %}
+      {% set l = item[key] | reject('mapping') | list %}
+      {% if l | length > 0 %}
+        {{- indent * level }}{{ key }}={{ to_toml(item[key], prefix, indent, level) -}}
+      {%- endif %}
+    {%- endif %}
+  {% endfor -%}
+
+  {%- for key, value in hashes.items() %}
+
+    {% set prefix = '.'.join([prefix,key] | select ) -%}
+    {{- indent * level }}[{{ prefix }}]
+    {# Render a list item -#}
+    {{- to_toml(value, prefix, indent, level + 1) }}
+  {% endfor -%}
+
+  {%- for key, value in item.items() if value is sequence %}
+    {% set tables = value | select('mapping') | list %}
+    {% if tables | length > 0 %}
+      {% set prefix = '.'.join([prefix,key] | select ) %}
+      {% for t in value %}
+
+        {# Render a table item header -#}
+        {{- indent * level }}[[{{ prefix }}]]
+        {# Render a table item content -#}
+        {{- to_toml(t, prefix, indent, level+1) }}
+      {% endfor %}
+    {% endif %}
+  {% endfor -%}
+
+{% elif item is string %}
+  {{- indent * level }}"{{ item }}"{#-#}
+{% elif item in [true, false] %}
+  {{- item | lower }}
+{% elif item is number %}
+  {{- item -}}
+{% elif item is sequence %}
+  {#- Render a list of strings, numbers or booleans -#}
+  [
+  {% for i in item -%}
+    {{- ',\n' if loop.index > 1 else '' -}}
+    {{ to_toml(i, prefix, indent, level+1) -}}
+  {% endfor %}
+  {{ '\n' + indent * level }}]
+{%endif%}
+{% endmacro %}

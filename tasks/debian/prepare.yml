@@ -1,0 +1,24 @@
+---
+
+- block:
+  - name: get OS codename
+    command: sed -n 's/^VERSION.*(\(.*\)).*/\1/p' /etc/os-release
+    register: cn
+
+  - name: set OS codename fact
+    set_fact:
+      ansible_lsb: "{{ {'codename': cn.stdout } }}"
+  when: ansible_lsb is undefined
+
+- name: enable apt-https transport
+  package: name=apt-transport-https state=present
+
+- name: add GPG keys for repositories
+  apt_key: url={{ item }} state=present
+  with_items: "{{ grafana.providers.pkg.repositories.values() | map(attribute='keys') | sum(start=[]) | unique | list }}"
+
+- name: add repositories
+  apt_repository: repo="deb {{ item }}"
+                  filename="{{ grafana.service.name }}"
+                  state=present
+  with_items: "{{ grafana.providers.pkg.repositories.values() | map(attribute='url') | unique | list }}"

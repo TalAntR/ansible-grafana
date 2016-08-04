@@ -1,0 +1,14 @@
+---
+
+- name: add yum repositories
+  yum_repository: name="{{ item.key }}"
+                  description="Grafana maintainer repository"
+                  file="{{ item.key }}"
+                  baseurl="{{ item.value.url }}"
+                  gpgkey="{{ item.value['keys'] | join(' ') }}"
+                  gpgcheck=yes
+                  enabled=yes
+                  repo_gpgcheck=yes
+                  sslverify=yes
+                  sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+  with_dict: "{{ grafana.providers.pkg.repositories }}"

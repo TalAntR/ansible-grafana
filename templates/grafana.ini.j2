@@ -1,0 +1,35 @@
+#jinja2: lstrip_blocks: True
+# Config file for grafana server.
+#
+# {{ ansible_managed }}
+#
+
+{%- macro to_ini(opts, section) %}
+{% for key, value in opts.items() | rejectattr('1', 'mapping') | sort %}
+  {% if loop.index == 1 and section %}
+
+    {# Print section comment -#}
+    {{ (' ' + section.capitalize() + ' ').center(80, '#') }}
+    {# Print section header -#}
+    [{{ section }}]
+  {% endif %}
+  {% if value in [true, false] %}
+    {{- key }}={{ value | lower }}
+  {% elif value is number %}
+    {{- key }}={{ value }}
+  {% else %}
+    {{- key }}={{ value }}
+  {% endif %}
+{% endfor %}
+
+{#- Render new ini section -#}
+{% for key, value in opts.items() | selectattr('1', 'mapping') %}
+  {% if value | length > 0 %}
+    {{- to_ini(value, '.'.join([section, key] | select )) -}}
+  {% endif %}
+{% endfor %}
+{% endmacro -%}
+
+############################ Grafana Configuration #############################
+
+{{ to_ini(grafana.service.options, '') }}

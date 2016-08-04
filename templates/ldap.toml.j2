@@ -1,0 +1,13 @@
+#jinja2: lstrip_blocks: True
+# LDAP configuration settings for grafana server. This file must be in TOML format.
+# See details here: https://github.com/toml-lang/toml
+#
+# Detailed overview for all allowed parameters see here: http://docs.grafana.org/installation/ldap/
+#
+# {{ ansible_managed }}
+#
+
+{% from 'macro/toml.j2' import to_toml with context -%}
+
+############################ LDAP  configuration  for Grafana #############################
+{{ to_toml(grafana.ldap, '') }}

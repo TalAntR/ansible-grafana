@@ -1,0 +1,16 @@
+---
+
+grafana:
+  # Define settings for YUM repository
+  providers:
+    pkg:
+      delim: "-"
+      repositories:
+        Grafana:
+          url: "https://packagecloud.io/grafana/stable/el/{{ ansible_distribution_major_version }}/$basearch"
+          keys:
+            - "https://packagecloud.io/gpg.key"
+            - "https://grafanarel.s3.amazonaws.com/RPM-GPG-KEY-grafana"
+      packages:
+        - grafana
+
