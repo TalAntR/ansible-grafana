@@ -1,14 +1,13 @@
 ---
 
-grafana_version: "{{ version | default('3.1.0') }}"
+grafana_version: "{{ version | default('7.0.3') }}"
 
 grafana:
+  version: "{{ grafana_version }}"
+
   service:
     # Name of the managed service
     name: "grafana"
-
-    # Version of the collectd daemon
-    version: "{{ grafana_version }}"
 
     # Base/working directory for grafana daemon
     home: "{{ grafana_home | default('/usr/share/grafana') }}"

@@ -1,24 +1,28 @@
 ---
 
 - block:
-  - name: get OS codename
-    command: sed -n 's/^VERSION.*(\(.*\)).*/\1/p' /etc/os-release
-    register: cn
+
+  - name: get OS version facts
+    slurp:
+      src: "/etc/os-release"
+    register: "_osv_"
 
   - name: set OS codename fact
     set_fact:
-      ansible_lsb: "{{ {'codename': cn.stdout } }}"
-  when: ansible_lsb is undefined
-
-- name: enable apt-https transport
-  package: name=apt-transport-https state=present
+      ansible_lsb: "{{ {'codename': _osv_.content | b64decode | regex_search('VERSION_CODENAME=(.*)', '\\1') | first } }}"
+  when: ansible_lsb is undefined or ansible_lsb.codename is undefined
 
 - name: add GPG keys for repositories
-  apt_key: url={{ item }} state=present
-  with_items: "{{ grafana.providers.pkg.repositories.values() | map(attribute='keys') | sum(start=[]) | unique | list }}"
+  apt_key:
+    url: "{{ item }}"
+    state: present
+  loop: "{{ _apt_ | flatten | selectattr('keys', 'defined') | map(attribute='keys') | sum(start=[]) | unique | list }}"
+  when: ansible_pkg_mgr == "apt"
 
 - name: add repositories
-  apt_repository: repo="deb {{ item }}"
-                  filename="{{ grafana.service.name }}"
-                  state=present
-  with_items: "{{ grafana.providers.pkg.repositories.values() | map(attribute='url') | unique | list }}"
+  apt_repository:
+    repo: "deb {{ item }}"
+    filename: "{{ svc.service.name }}"
+    state: present
+  loop: "{{ _apt_ | flatten | selectattr('url', 'defined') | map(attribute='url') | list }}"
+  when: ansible_pkg_mgr == "apt"

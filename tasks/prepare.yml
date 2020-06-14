@@ -1,9 +1,24 @@
 ---
-
-- name: prepare rhel host
-  include: redhat/prepare.yml
+- name: prepare rhel
+  include_tasks: redhat/prepare.yml
   when: (ansible_os_family | lower == "redhat")
 
-- name: prepare debian host
-  include: debian/prepare.yml
+- name: prepare debian
+  include_tasks: debian/prepare.yml
+  vars:
+    _apt_:
+      - "{{ svc.providers.apt.repositories.values() | selectattr('enabled', 'undefined') | list }}"
+      - "{{ svc.providers.apt.repositories.values() | selectattr('enabled', 'defined') | selectattr('enabled') | list }}"
   when: (ansible_os_family | lower == "debian")
+
+- name: install/upgrade prerequisites
+  package:
+    name: "{{ item.1 }}"
+    update_cache: yes
+    state: present
+    use: "{{ item.0 }}"
+  loop: "{{ pm | zip(pm | map('extract', svc.providers, ['prerequisites'])) | selectattr('1') | list }}"
+  loop_control:
+    label: "{{ item.0 }} -> {{ item.1 }}"
+  vars:
+    pm: "{{ svc.providers.keys() | list }}"

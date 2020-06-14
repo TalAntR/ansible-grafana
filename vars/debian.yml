@@ -1,15 +1,14 @@
 ---
 
 grafana:
-  # Define settings for APT repository
   providers:
-    # Configuration settings and packages for Debian-based Linux
-    pkg:
-      delim: "="
+    apt:
       repositories:
-        Grafana:
-          url: "https://packagecloud.io/grafana/stable/debian {{ ansible_lsb.codename }} main"
-          keys: [ "https://packagecloud.io/gpg.key" ]
-      packages:
-        - grafana
+        grafana-oss:
+          url: "https://packages.grafana.com/oss/deb stable main"
+          keys: [ "https://packages.grafana.com/gpg.key" ]
+      # Apt packages which are installed on prepare phase
+      prerequisites: []
 
+      packages:
+        - "grafana={{ grafana.version }}*"
