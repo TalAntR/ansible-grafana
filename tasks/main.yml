@@ -1,23 +1,44 @@
 ---
 
-  # To override role settings by user, just add a group_vars file
-  # with OS family name and put desired settings there
 - name: create OS-specific groups
-  group_by: key="{{ ansible_os_family | lower }}"
-  when: ansible_os_family is defined
+  block:
+    - name: group hosts by OS family
+      group_by:
+        key: "{{ ansible_os_family | lower }}"
+      when: ansible_os_family is defined
+
+    - name: group hosts by distribution
+      group_by:
+        key: "{{ ansible_os_family | lower }}{{ '%02d' | format(ansible_distribution_major_version | int) }}"
+        parents:
+          - "{{ ansible_os_family | lower }}"
+      when:
+        - ansible_os_family is defined
+        - ansible_distribution_major_version is defined
+
+    - name: include OS-specific settings
+      include_vars:
+        file: "{{ lookup('first_found', arguments, errors='ignore') }}"
+        name: "_"
+      vars:
+        arguments:
+          files: "{{ group_names | sort(reverse=True) | map('regex_replace', '^(.*)$', '\\1.yml') | list }}"
+          paths: [ "vars" ]
   tags: always
 
-- name: include OS-specific settings
-  include_vars: "{{ ansible_os_family | lower }}.yml"
-  tags: always
+- import_tasks: prepare.yml
+  vars:
+    svc: "{{ _.grafana | combine(grafana, recursive=True) }}"
+  tags: [ prepare ]
 
-- include: prepare.yml
-  tags: prepare
+- import_tasks: install.yml
+  vars:
+    svc: "{{ _.grafana | combine(grafana, recursive=True) }}"
+  tags: [ install ]
 
-- include: install.yml
-  tags: install
-
-- include: configure.yml
+- import_tasks: configure.yml
+  vars:
+    svc: "{{ _.grafana | combine(grafana, recursive=True) }}"
   tags: configure
 
 - include: restart.yml

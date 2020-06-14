@@ -1,13 +1,23 @@
 ---
 
 - name: install packages
-  package: name={{ grafana.providers.pkg.delim.join([item, grafana.service.version]) }}*
-           update_cache=yes
-           state=present
-  with_items: "{{ grafana.providers.pkg.packages | select | list }}"
+  package:
+    name: "{{ item.1 }}"
+    update_cache: yes
+    state: present
+    use: "{{ item.0 }}"
+  loop: "{{ pm | zip(pm | map('extract', svc.providers, ['packages'])) | selectattr('1') | list }}"
+  loop_control:
+    label: "{{ item.0 }} -> {{ item.1 }}"
+  vars:
+    pm: "{{ svc.providers.keys() | list }}"
 
 - name: create *.conf.d folder
-  file: path={{ grafana.service.conf }} state=directory
+  file:
+    path: "{{ svc.service.conf }}"
+    state: directory
 
 - name: enable autostart on boot
-  service: name={{ grafana.service.daemon }} enabled=yes
+  service:
+    name: "{{ svc.service.daemon }}"
+    enabled: yes

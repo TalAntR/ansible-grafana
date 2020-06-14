@@ -1,0 +1,17 @@
+---
+
+grafana:
+  providers:
+    dnf:
+      packages:
+        - "grafana-{{ grafana.version }}*"
+      # DNF packages which are installed on prepare phase
+      prerequisites: []
+    yum:
+      repositories:
+        grafana-oss:
+          description: "Grafana: OSS release repository"
+          keys:
+            - "https://packages.grafana.com/gpg.key"
+          sslcacert: /etc/pki/tls/certs/ca-bundle.crt
+          url: "https://packages.grafana.com/oss/rpm"

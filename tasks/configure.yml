@@ -1,19 +1,21 @@
 ---
 
 - name: deliver configuration
-  template: src=grafana.ini.j2
-            dest={{ grafana.service.conf }}/grafana.ini
-            owner={{ grafana.service.owner }}
-            group={{ grafana.service.owner }}
-            mode=0640
+  template:
+    src: "grafana.ini.j2"
+    dest: "{{ svc.service.conf }}/grafana.ini"
+    owner: "{{ svc.service.owner }}"
+    group: "{{ svc.service.owner }}"
+    mode: "0640"
   notify: restart grafana
 
 
 - name: deliver ldap configuration
-  template: src=ldap.toml.j2
-            dest={{ grafana.service.conf }}/ldap.toml
-            owner={{ grafana.service.owner }}
-            group={{ grafana.service.owner }}
-            mode=0640
-  when: grafana.service.options.auth.ldap.enabled
+  template:
+    src: "ldap.toml.j2"
+    dest: "{{ svc.service.conf }}/ldap.toml"
+    owner: "{{ svc.service.owner }}"
+    group: "{{ svc.service.owner }}"
+    mode: "0640"
+  when: svc.service.options.auth.ldap.enabled
   notify: restart grafana
